@@ -52,13 +52,13 @@ class VideoEditor extends React.Component {
 			const res = await axios.post(`${BASE_URL}/trim`, metadata );
 
 			if(res.status === 201) {
-				console.log('setting video url');
+				// console.log('setting video url');
 				window.open(`${BASE_URL}/video_out.mp4`, '_blank');
 				// this.setState({ videoUrl: `http://localhost:4000/video_out.mp4` });
 			}
 
 
-			console.log(`Response: ${res.data}`);
+			// console.log(`Response: ${res.data}`);
 		} catch (error) {
 			console.error(error.response);
 

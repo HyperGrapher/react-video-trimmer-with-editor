@@ -108,7 +108,7 @@ class Editor extends React.Component {
         if(this.state.playing){
             this.playVideo.current.pause()
         }
-        var prev_idx = (this.state.currently_grabbed.index != 0) ? (this.state.currently_grabbed.index-1) : (this.state.timings.length-1)
+        var prev_idx = (this.state.currently_grabbed.index !== 0) ? (this.state.currently_grabbed.index-1) : (this.state.timings.length-1)
         this.setState({currently_grabbed: {"index": prev_idx , "type": "start"}, playing: false}, () => {
             this.progressBar.current.style.left = `${this.state.timings[prev_idx].start / this.playVideo.current.duration * 100}%`;
             this.progressBar.current.style.width = '0%'
@@ -140,7 +140,7 @@ class Editor extends React.Component {
         if(this.state.playing){
             this.playVideo.current.pause()
         }
-        var next_idx = (this.state.currently_grabbed.index != (this.state.timings.length-1)) ? (this.state.currently_grabbed.index+1) : 0
+        var next_idx = (this.state.currently_grabbed.index !== (this.state.timings.length-1)) ? (this.state.currently_grabbed.index+1) : 0
         this.setState({currently_grabbed: {"index": next_idx , "type": "start"}, playing: false}, () => {
             this.progressBar.current.style.left = `${this.state.timings[next_idx].start / this.playVideo.current.duration * 100}%`;
             this.progressBar.current.style.width = '0%'
@@ -161,7 +161,7 @@ class Editor extends React.Component {
             }
             counter += 1;
         }
-        if(index == -1){
+        if(index === -1){
             return
         }
         this.setState({playing: false, currently_grabbed: {"index": index, "type": "start"}}, () => {
@@ -180,13 +180,13 @@ class Editor extends React.Component {
         window.addEventListener("mouseup", () => {window.removeEventListener('mousemove', this.startGrabberMove); this.addActiveSegments()})
         var time = this.state.timings
         var seek = this.playVideo.current.duration * seekRatio
-        if((type == "start") && (seek > ((index != 0) ? (time[index-1].end+this.state.difference+0.2) : 0)) && seek < time[index].end-this.state.difference){
+        if((type === "start") && (seek > ((index !== 0) ? (time[index-1].end+this.state.difference+0.2) : 0)) && seek < time[index].end-this.state.difference){
             this.progressBar.current.style.left = `${seekRatio*100}%`
             this.playVideo.current.currentTime = seek
             time[index]["start"] = seek
             this.setState({timings: time, playing: false})
         }
-        else if((type == "end") && (seek > time[index].start+this.state.difference) && (seek < (index != (this.state.timings.length-1) ? time[index+1].start-this.state.difference-0.2 : this.playVideo.current.duration))){
+        else if((type === "end") && (seek > time[index].start+this.state.difference) && (seek < (index !== (this.state.timings.length-1) ? time[index+1].start-this.state.difference-0.2 : this.playVideo.current.duration))){
             this.progressBar.current.style.left = `${time[index].start / this.playVideo.current.duration * 100}%`
             this.playVideo.current.currentTime = time[index].start
             time[index]["end"] = seek
@@ -256,7 +256,7 @@ class Editor extends React.Component {
     deleteGrabber = (index) => {
         var time = this.state.timings
         this.setState({timings: time, deletingGrabber: false, current_warning: null, currently_grabbed: {"index": 0, "type": "start"}})
-        if(time.length == 1){
+        if(time.length === 1){
             return
         }
         time.splice(index, 1);
