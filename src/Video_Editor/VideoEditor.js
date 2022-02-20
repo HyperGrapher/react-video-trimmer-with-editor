@@ -13,9 +13,10 @@ class VideoEditor extends React.Component {
 		this.state = {
 			isUpload: true,
 			videoUrl: "",
-			isDarkMode: false,
+			isDarkMode: true,
 			resFileName: "",
 			resFilePath: "",
+			busy: false,
 		};
 	}
 
@@ -45,26 +46,25 @@ class VideoEditor extends React.Component {
 		// console.log("metadata");
 		// console.log(metadata);
 		// alert("Please check your console to see all the metadata. This can be used for video post-processing.")
-	
-    
+
+		this.setState({ busy: true });
 
 		try {
-			const res = await axios.post(`${BASE_URL}/trim`, metadata );
+			const res = await axios.post(`${BASE_URL}/trim`, metadata);
 
-			if(res.status === 201) {
-				// console.log('setting video url');
-				window.open(`${BASE_URL}/video_out.mp4`, '_blank');
+			if (res.status === 201) {
+				this.setState({ busy: false });
+				console.log('setting video url');
+				window.open(`${BASE_URL}/video_out.mp4`, "_blank");
 				// this.setState({ videoUrl: `http://localhost:4000/video_out.mp4` });
 			}
-
 
 			// console.log(`Response: ${res.data}`);
 		} catch (error) {
 			console.error(error.response);
-
+			this.setState({ busy: false });
 		}
-    
-    };
+	};
 
 	render_editor = () => {
 		return (
@@ -87,7 +87,6 @@ class VideoEditor extends React.Component {
 	};
 
 	upload_file = async (fileInput) => {
-
 		let fileUrl = window.URL.createObjectURL(fileInput[0]);
 		// let filename = fileInput.name;
 
@@ -124,6 +123,17 @@ if(error.response.status === 500) console.log('Server error');
 	render = () => {
 		return (
 			<div>
+				{this.state.busy && (
+					<div className="loader">
+						<div className="cent">
+							<div className="lds-ripple">
+								<div></div>
+								<div></div>
+							</div>
+						</div>
+						<h5 className="text-center mt-3">~Bekleyiniz..</h5>
+					</div>
+				)}
 				{this.state.isUpload ? this.render_uploader() : this.render_editor()}
 				{/* <div className={"theme_toggler"} onClick={this.toggleThemes}>{this.state.isDarkMode? (<i className="toggle" aria-hidden="true"><FontAwesomeIcon icon={faLightbulb} /></i>) : <i className="toggle"><FontAwesomeIcon icon={faMoon} /></i>}</div> */}
 			</div>
