@@ -2,12 +2,11 @@ import React from "react";
 import { FileDrop } from "react-file-drop";
 import { BASE_URL } from "../utils/constants";
 import "./css/editor.css";
-import Editor from "./Editor";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { faLightbulb, faMoon } from "@fortawesome/free-solid-svg-icons";
+import VideoEditor from "./VideoEditor";
 import axios from "axios";
+import DisplayResult from "./DisplayResult";
 
-class VideoEditor extends React.Component {
+class EditorParent extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -17,6 +16,7 @@ class VideoEditor extends React.Component {
 			resFileName: "",
 			resFilePath: "",
 			busy: false,
+			result_url: "",
 		};
 	}
 
@@ -43,23 +43,15 @@ class VideoEditor extends React.Component {
 	};
 
 	saveVideo = async (metadata) => {
-		// console.log("metadata");
-		// console.log(metadata);
-		// alert("Please check your console to see all the metadata. This can be used for video post-processing.")
-
 		this.setState({ busy: true });
 
 		try {
 			const res = await axios.post(`${BASE_URL}/trim`, metadata);
 
 			if (res.status === 201) {
-				this.setState({ busy: false });
-				console.log('setting video url');
-				window.open(`${BASE_URL}/video_out.mp4`, "_blank");
-				// this.setState({ videoUrl: `http://localhost:4000/video_out.mp4` });
+				this.setState({ busy: false, result_url: `${BASE_URL}/video_out.mp4` });
+				console.log("setting video url: ", `${BASE_URL}/video_out.mp4`);
 			}
-
-			// console.log(`Response: ${res.data}`);
 		} catch (error) {
 			console.error(error.response);
 			this.setState({ busy: false });
@@ -67,28 +59,15 @@ class VideoEditor extends React.Component {
 	};
 
 	render_editor = () => {
-		return (
-			// Props:
-			// videoUrl --> URL of uploaded video
-			// saveVideo(<metadata of edited video>) --> gives the cut times and if video is muted or not
-			<Editor videoUrl={this.state.videoUrl} saveVideo={this.saveVideo} />
-		);
+		return <VideoEditor videoUrl={this.state.videoUrl} saveVideo={this.saveVideo} />;
 	};
 
-	toggleThemes = () => {
-		if (this.state.isDarkMode) {
-			document.body.style.backgroundColor = "#1f242a";
-			document.body.style.color = "#fff";
-		} else {
-			document.body.style.backgroundColor = "#fff";
-			document.body.style.color = "#1f242a";
-		}
-		this.setState({ isDarkMode: !this.state.isDarkMode });
+	display_result = () => {
+		return <DisplayResult videoUrl={this.state.result_url} />;
 	};
 
 	upload_file = async (fileInput) => {
 		let fileUrl = window.URL.createObjectURL(fileInput[0]);
-		// let filename = fileInput.name;
 
 		console.log(`file ${fileUrl}`);
 		this.setState({
@@ -112,33 +91,40 @@ class VideoEditor extends React.Component {
 			console.log(`Response: ${filename} -- ${filepath}`);
 		} catch (error) {
 			console.error(error.response);
-
-			/*
-if(error.response.status === 500) console.log('Server error');
-            else 
-            */
 		}
 	};
 
+	toggleThemes = () => {
+		if (this.state.isDarkMode) {
+			document.body.style.backgroundColor = "#1f242a";
+			document.body.style.color = "#fff";
+		} else {
+			document.body.style.backgroundColor = "#fff";
+			document.body.style.color = "#1f242a";
+		}
+		this.setState({ isDarkMode: !this.state.isDarkMode });
+	};
+
 	render = () => {
-		return (
+		return this.state.result_url ? (
+			this.display_result()
+		) : (
 			<div>
 				{this.state.busy && (
 					<div className="loader">
 						<div className="cent">
-							<div className="lds-ripple">
+							<div className="loading-indicator">
 								<div></div>
 								<div></div>
 							</div>
 						</div>
-						<h5 className="text-center mt-3">~Bekleyiniz..</h5>
+						<h5 className="text-center mt-3">Bekleyiniz..</h5>
 					</div>
 				)}
 				{this.state.isUpload ? this.render_uploader() : this.render_editor()}
-				{/* <div className={"theme_toggler"} onClick={this.toggleThemes}>{this.state.isDarkMode? (<i className="toggle" aria-hidden="true"><FontAwesomeIcon icon={faLightbulb} /></i>) : <i className="toggle"><FontAwesomeIcon icon={faMoon} /></i>}</div> */}
 			</div>
 		);
 	};
 }
 
-export default VideoEditor;
+export default EditorParent;

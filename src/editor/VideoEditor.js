@@ -1,10 +1,10 @@
 import React from 'react';
 import './css/editor.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faVolumeMute, faVolumeUp, faPause, faPlay, faGripLinesVertical, faSync, faStepBackward, faStepForward, faCamera, faDownload, faEraser } from '@fortawesome/free-solid-svg-icons'
+import { faVolumeMute, faVolumeUp, faPause, faPlay, faGripLinesVertical, faSync, faStepBackward, faStepForward, faCamera } from '@fortawesome/free-solid-svg-icons'
 
 
-class Editor extends React.Component {
+class VideoEditor extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -14,7 +14,6 @@ class Editor extends React.Component {
             currently_grabbed: {"index": 0, "type": "none"},
             difference: 0.2,
             deletingGrabber: false,
-            current_warning: null,
             imageUrl: ""
         }
         this.playVideo = React.createRef();
@@ -22,14 +21,11 @@ class Editor extends React.Component {
         this.playBackBar = React.createRef();
     }
 
-    warnings = {
-        "delete_grabber": (<div>Please click on the grabber (either start or end) to delete it</div>)
-    }
 
     reader = new FileReader();
 
     componentDidMount = () => {
-        // Check if video ended
+
         var self = this
         this.playVideo.current.addEventListener('timeupdate', function () {
             var curr_idx = self.state.currently_grabbed.index
@@ -73,7 +69,6 @@ class Editor extends React.Component {
             currently_grabbed: {"index": 0, "type": "none"},
             difference: 0.2,
             deletingGrabber: false,
-            current_warning: null,
             imageUrl: ""
         }, () => {
             this.playVideo.current.currentTime = this.state.timings[0].start;
@@ -86,22 +81,15 @@ class Editor extends React.Component {
     captureSnapshot = () => {
         var video = this.playVideo.current
         const canvas = document.createElement("canvas");
-        // scale the canvas accordingly
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        // draw the video at that frame
+
         canvas.getContext('2d')
         .drawImage(video, 0, 0, canvas.width, canvas.height);
-        // convert it to a usable data URL
+
         const dataURL = canvas.toDataURL();
         this.setState({imageUrl: dataURL})
-    }
-
-    downloadSnapshot = () => {
-        var a = document.createElement("a"); //Create <a>
-        a.href = this.state.imageUrl; //Image Base64 Goes here
-        a.download = "Thumbnail.png"; //File name Here
-        a.click(); //Downloaded file
     }
 
     skipPrevious = () => {
@@ -152,7 +140,7 @@ class Editor extends React.Component {
         var playbackRect = this.playBackBar.current.getBoundingClientRect();
         var seekTime = ((event.clientX - playbackRect.left) / playbackRect.width) * this.playVideo.current.duration
         this.playVideo.current.pause()
-        // find where seekTime is in the segment
+
         var index = -1;
         var counter = 0;
         for(let times of this.state.timings){
@@ -165,7 +153,7 @@ class Editor extends React.Component {
             return
         }
         this.setState({playing: false, currently_grabbed: {"index": index, "type": "start"}}, () => {
-            this.progressBar.current.style.width = '0%' // Since the width is set later, this is necessary to hide weird UI
+            this.progressBar.current.style.width = '0%' 
             this.progressBar.current.style.left = `${this.state.timings[index].start / this.playVideo.current.duration * 100}%`
             this.playVideo.current.currentTime = seekTime
         })
@@ -231,40 +219,7 @@ class Editor extends React.Component {
         ))
     }
 
-    addGrabber = () => {
-        var time = this.state.timings
-        var end = time[time.length-1].end+this.state.difference
-        this.setState({deletingGrabber: false, current_warning: null})
-        if(end >= this.playVideo.current.duration){
-            return
-        }
-        time.push({"start": end+0.2, "end": this.playVideo.current.duration})
-        this.setState({timings: time}, () => {
-            this.addActiveSegments()
-        })
-    }
 
-    preDeleteGrabber = () => {
-        if(this.state.deletingGrabber){
-            this.setState({deletingGrabber: false, current_warning: null})
-        }
-        else{
-            this.setState({deletingGrabber: true, current_warning: "delete_grabber"});
-        }
-    }
-
-    deleteGrabber = (index) => {
-        var time = this.state.timings
-        this.setState({timings: time, deletingGrabber: false, current_warning: null, currently_grabbed: {"index": 0, "type": "start"}})
-        if(time.length === 1){
-            return
-        }
-        time.splice(index, 1);
-        this.progressBar.current.style.left = `${time[0].start / this.playVideo.current.duration * 100}%`;
-        this.playVideo.current.currentTime = time[0].start;
-        this.progressBar.current.style.width = "0%";
-        this.addActiveSegments();
-    }
 
     addActiveSegments = () => {
         var colors = ""
@@ -319,28 +274,11 @@ class Editor extends React.Component {
                         <button title="Videoyu kaydet" className="trim-control" onClick={this.saveVideo}>Kaydet</button>
                     </div>
                 </div>
-                {this.state.current_warning != null ? <div className={"warning"}>{this.warnings[this.state.current_warning]}</div> : ""}
                
             </div>
         )
     }
 }
 
-export default Editor
+export default VideoEditor
 
-/*
-
- {(this.state.imageUrl != "") ? 
-                    <div className={"marginVertical"}>
-                        <img src={this.state.imageUrl} className={"thumbnail"} />
-                        <div className="controls">
-                            <div className="player-controls">
-                                <button className="settings-control" title="Reset Video" onClick={this.downloadSnapshot}><FontAwesomeIcon icon={faDownload} /></button>
-                                <button className="settings-control" title="Save Video" onClick={() => {this.setState({imageUrl: ""})}}><FontAwesomeIcon icon={faEraser} /></button>
-                            </div>
-                        </div>
-                    </div>
-                : ""}
-
-
-*/
